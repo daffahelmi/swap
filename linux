@@ -1,0 +1,33 @@
+#!/bin/bash
+
+echo "Pilih ukuran swap yang ingin dibuat:"
+echo "1. 256MB"
+echo "2. 512MB"
+echo "3. 1GB"
+echo "4. 2GB"
+read -p "Masukkan pilihan Anda (1-4): " pilihan
+
+case $pilihan in
+    1) ukuran="256M" ;;
+    2) ukuran="512M" ;;
+    3) ukuran="1G" ;;
+    4) ukuran="2G" ;;
+    *) echo "Pilihan tidak valid!" && exit 1 ;;
+esac
+
+echo "Menghapus swap sebelumnya (jika ada)..."
+sudo swapoff -a
+sudo rm -f /swapfile
+
+echo "Membuat swap baru dengan ukuran $ukuran..."
+sudo fallocate -l $ukuran /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+echo "Memperbarui /etc/fstab..."
+sudo sed -i '/\/swapfile/d' /etc/fstab
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+echo "Swap sebesar $ukuran telah dibuat dan diaktifkan."
+free -h
